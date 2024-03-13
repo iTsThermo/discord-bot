@@ -1,13 +1,13 @@
-# bot.py
-import os
-
 import discord
+from typing import Final
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
+TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
+print(TOKEN)
 
-client = discord.Client()
+client = discord.Client(intents=discord.Intents.default())
 
 @client.event
 async def on_ready():
