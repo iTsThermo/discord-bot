@@ -13,6 +13,7 @@ intents: Intents = Intents.default()
 intents.message_content = True
 client: Client = Client(intents=intents)
 
+#Created global variable to keep track of converation/logging
 logs_of_messages = [{"role": "system", "content": "You are an informative assistant. You will be helping programmers develope programs so be sure you give code and descriptive descriptions of that code."},]
 
 #Takes in the users response and calls the response_from_gpt function from gpt_response.py
@@ -31,9 +32,12 @@ async def take_in_response_from_users(message: Message, user_message: str) -> No
     #try catch block to get a response and send the response back to the users channel
     try:
         if is_command:
+            #appends the recent request to the logs
             logs_of_messages.append({"role": "user", "content": user_message},)
             str_response_from_ai: list = response_from_gpt(logs_of_messages)
+            #Sends the response received from the AI to the discord chat
             await message.channel.send(str_response_from_ai)
+            #returns string for logging purposes
             return str_response_from_ai
     except Exception as e:
             await message.channel.send(e)
@@ -47,16 +51,22 @@ async def on_ready() -> None:
 
 @client.event
 async def on_message(message: Message) -> None:
+    #Checks if the message was sent by the bot, prevents looping its own messages
     if message.author == client.user:
         return
     
+    #Logs what messages come through to the bot
     username: str = str(message.author)
     user_message: str = message.content
     channel: str = str(message.channel)
 
+    #prints the logged message
     print(f'[{channel}] {username}: "{user_message}"')
+
     try:
+        #calls function
         str_response_from_ai = await take_in_response_from_users(message, user_message)
+        #appends the response into logs (only locally)
         logs_of_messages.append({"role": "system", "content": str_response_from_ai},)
     except Exception as e:
         print(f"An error occurred while processing the message: {e}")
