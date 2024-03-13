@@ -13,6 +13,8 @@ intents: Intents = Intents.default()
 intents.message_content = True
 client: Client = Client(intents=intents)
 
+logs_of_messages = [{"role": "system", "content": "You are an informative assistant. You will be helping programmers develope programs so be sure you give code and descriptive descriptions of that code."},]
+
 #Takes in the users response and calls the response_from_gpt function from gpt_response.py
 async def take_in_response_from_users(message: Message, user_message: str) -> None:
     #Checks if the message is empty
@@ -29,10 +31,14 @@ async def take_in_response_from_users(message: Message, user_message: str) -> No
     #try catch block to get a response and send the response back to the users channel
     try:
         if is_command:
-            response: str = response_from_gpt(user_message)
-            await message.channel.send(response)
+            logs_of_messages.append({"role": "user", "content": user_message},)
+            str_response_from_ai: list = response_from_gpt(logs_of_messages)
+            await message.channel.send(str_response_from_ai)
+            return str_response_from_ai
     except Exception as e:
             await message.channel.send(e)
+
+    
 
 #Notifies the user that the bot is up and running
 @client.event
@@ -50,7 +56,8 @@ async def on_message(message: Message) -> None:
 
     print(f'[{channel}] {username}: "{user_message}"')
     try:
-        await take_in_response_from_users(message, user_message)
+        str_response_from_ai = await take_in_response_from_users(message, user_message)
+        logs_of_messages.append({"role": "system", "content": str_response_from_ai},)
     except Exception as e:
         print(f"An error occurred while processing the message: {e}")
 
